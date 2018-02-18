@@ -6,11 +6,81 @@ canvas.height = 480;
 var ctx = canvas.getContext('2d');
 
 // camera zoom
-var worldSizeRatio = 8;
+var
+  minZoom = 1,
+  maxZoom = 15,
+  originalZoom = 8;
+var worldSizeRatio = originalZoom;
+var zoomSlider = document.getElementById('zoom');
+zoomSlider.min = minZoom;
+zoomSlider.max = maxZoom;
+zoomSlider.value = worldSizeRatio;
+zoomSlider.oninput = function() {
+  worldSizeRatio = zoomSlider.value;
+}
+
+var resetViewButton = document.getElementById('reset_view');
+resetViewButton.onclick = function() {
+  zoomSlider.value = originalZoom;
+  worldSizeRatio = originalZoom;
+
+  cameraOffsetX = 0;
+  cameraOffsetY  = 0;
+
+  xAdjustment = canvas.width / 2 + cameraOffsetX,
+  yAdjustment = canvas.height / 2 + cameraOffsetY;
+}
 
 var
-  xAdjustment = canvas.width / 2,
-  yAdjustment = canvas.height / 2;
+  cameraOffsetX = 0,
+  cameraOffsetY = 0;
+
+var
+  xAdjustment = canvas.width / 2 + cameraOffsetX,
+  yAdjustment = canvas.height / 2 + cameraOffsetY;
+
+
+// DRAGGING
+
+var mouseDown = false;
+var prevDragX = 0, prevDragY = 0;
+var canvasOffset = canvas.getBoundingClientRect();
+
+var onMouseDown = function(e) {
+  mouseDown = true;
+  prevDragX = parseInt(e.clientX - canvasOffset.left);
+  prevDragY = parseInt(e.clientY - canvasOffset.top);
+};
+canvas.addEventListener("mousedown", onMouseDown);
+
+var onMouseUp = function(e) {
+  mouseDown = false;
+};
+canvas.addEventListener("mouseup", onMouseUp);
+canvas.addEventListener("mouseleave", onMouseUp);
+
+var onMouseMove = function(e) {
+  if(mouseDown) {
+    var dragX = parseInt(e.clientX - canvasOffset.left);
+    var dragY = parseInt(e.clientY - canvasOffset.top);
+
+    cameraOffsetX += dragX - prevDragX;
+    cameraOffsetY += dragY - prevDragY;
+
+    xAdjustment = canvas.width / 2 + cameraOffsetX,
+    yAdjustment = canvas.height / 2 + cameraOffsetY;
+
+    prevDragX = dragX;
+    prevDragY = dragY;
+  }
+};
+canvas.addEventListener("mousemove", onMouseMove);
+
+
+
+
+
+
 
 var worldObjects = [];
 
@@ -61,6 +131,17 @@ worldObjects.push( new Box(world, Vec2(-20.0, 0.0), Vec2(10.0, 10.0)) );
 
 for(var i=0; i<10; i++) {
   worldObjects.push( new Creature(world) );
+}
+
+var panicCountdown = 60 * 10;
+var panicButton = document.getElementById('panic');
+panicButton.onclick = function() {
+  console.log("Everybody freak out!!!");
+  for(i in worldObjects) {
+    if(worldObjects[i].type == "creature") {
+      worldObjects[i].panic();
+    }
+  }
 }
 
 world.on('begin-contact', function(contact, oldManifold) {

@@ -34,7 +34,7 @@ class Renderer {
     ctx.stroke();
   }
 
-  static renderBox(ctx, position, size, color = "rgb(255,200,0)") {
+  static renderBox(ctx, position, size, color = "rgb(150,150,150)") {
     ctx.rect(
       Renderer.worldAdjustX(position.x) - (size.x * worldSizeRatio / 2),
       Renderer.worldAdjustY(position.y) - (size.x * worldSizeRatio / 2),

@@ -1,3 +1,17 @@
 canvas {
   border: 1px solid black;
+  float: left;
+}
+
+#controls_container {
+  float: left;
+}
+
+#panic {
+  background-color: red;
+}
+
+#zoom {
+  width: 200px;
+  height: 20px;
 }

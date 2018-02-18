@@ -1,12 +1,14 @@
 function Creature(world) {
   this.type = "creature";
   this.maxSpeed = 20.0;
-  this.turnSpeed = 8.0;
-  this.maxAcceleration = 20.0;
+  this.maxTurnSpeed = 16.0;
+  this.maxAcceleration = 80.0;
 
-  this.speed = 0.0;
-
-  this.state = new CreatureStateRelaxed();
+  this.curSpeed = 0.0;
+  this.curTurnSpeed = 0.0;
+  this.curAcceleration = 0.0;
+  this.state = new CreatureStateRelaxed(this);
+  //this.state = new CreatureStatePanic(this);
 
   this.body = world.createBody({
     type: 'dynamic',
@@ -32,30 +34,24 @@ function Creature(world) {
     isSensor: true
   });
 
-  var steps = 0;
+  this.panicCountdown = 0;
+  this.panic = function() {
+    this.panicCountdown = 60 * 10;
+  }
+
   this.step = function() {
 
     // BEHAVIOR
 
-    steps += 1;
-    if(steps >= 100 && Math.floor(Math.random() * 60) == 1) {
-      steps = 0;
-      var distance = Math.random() * 4.0 + 0.5;
-      var newTarget = Vec2(
-        this.body.getPosition().x + distance * Math.cos(Math.random() * Math.PI*2),
-        this.body.getPosition().y + distance * Math.cos(Math.random() * Math.PI*2)
-      );
-
-      // make sure we have line of sight to the new target
-      var callback = RayCastAnyCallback();
-      world.rayCast(this.body.getPosition(), newTarget, callback.ReportFixture);
-      if(callback.m_hit == false) {
-        this.target = newTarget;
+    this.state.step();
+    if(this.panicCountdown > 0) {
+      if(this.state.type != "panic") {
+        this.state = new CreatureStatePanic(this);
       } else {
-        // just turn towards where you would have gone
-        // TODO: doesn't work this way
-        //this.targetAngle = MathHelper.angleTo(this.body.getPosition(), newTarget);
+        this.panicCountdown -= 1;
       }
+    } else if(this.state.type == "panic") {
+      this.state = new CreatureStateRelaxed(this);
     }
 
     var curAngle = this.body.getAngle();
@@ -73,7 +69,7 @@ function Creature(world) {
      //this.body.setAngle( this.targetAngle );
      this.body.setAngularVelocity(0);
     } else {
-      var appliedTurn = this.turnSpeed * Math.abs(minAngleDiff)/Math.PI;
+      var appliedTurn = this.curTurnSpeed * Math.abs(minAngleDiff)/Math.PI;
       if(minAngleDiff < 0.0) {
         //this.body.applyAngularImpulse(-appliedTurn, true);
         this.body.setAngularVelocity(-appliedTurn);
@@ -98,15 +94,15 @@ function Creature(world) {
     //              ┤╭╯
     //              ┤│
     //         rest ┼╯
-    var accelerationForce = (this.maxAcceleration / 4.0) * ( Math.atan(distToTarget/4.0) / (Math.PI/2) );
+    var accelerationForce = this.curAcceleration * ( Math.atan(distToTarget/4.0) / (Math.PI/2) );
     //var accelerationForce = this.acceleration * (distToTarget/20.0);
 
     //console.log("accelerationForce: " + accelerationForce);
 
-    this.speed = accelerationForce * this.maxSpeed;
+    this.curSpeed = accelerationForce * this.maxSpeed;
 
-    var mx = this.speed * Math.cos( this.body.getAngle() );
-    var my = this.speed * Math.sin( this.body.getAngle() );
+    var mx = this.curSpeed * Math.cos( this.body.getAngle() );
+    var my = this.curSpeed * Math.sin( this.body.getAngle() );
 
     var linearVelocity = this.body.getLinearVelocity();
 
@@ -154,7 +150,7 @@ function Creature(world) {
     );
 
     // target
-    //Renderer.renderCircle(ctx, this.target, 0.2, "rgba(0,255,0,0.5)");
+    //Renderer.renderCircle(ctx, this.target, 0.2, "rgba(200,0,0,0.5)");
   };
 
   this.lastTargetAngleChange = Date.now();
@@ -170,27 +166,65 @@ function Creature(world) {
   };
 }
 
-function CreatureStateRelaxed() {
+function CreatureStateRelaxed(creature) {
+  this.type = "relaxed";
   var steps = 0;
+
+  // chill, just go quarter speed
+  creature.curTurnSpeed = creature.maxTurnSpeed / 3.0;
+  creature.curAcceleration = creature.maxAcceleration / 10.0;
+
   this.step = function() {
     steps += 1;
     if(steps >= 100 && Math.floor(Math.random() * 60) == 1) {
       steps = 0;
       var distance = Math.random() * 4.0 + 0.5;
       var newTarget = Vec2(
-        this.body.getPosition().x + distance * Math.cos(Math.random() * Math.PI*2),
-        this.body.getPosition().y + distance * Math.cos(Math.random() * Math.PI*2)
+        creature.body.getPosition().x + distance * Math.cos(Math.random() * Math.PI*2),
+        creature.body.getPosition().y + distance * Math.cos(Math.random() * Math.PI*2)
       );
 
       // make sure we have line of sight to the new target
       var callback = RayCastAnyCallback();
-      world.rayCast(this.body.getPosition(), newTarget, callback.ReportFixture);
+      world.rayCast(creature.body.getPosition(), newTarget, callback.ReportFixture);
       if(callback.m_hit == false) {
-        this.target = newTarget;
+        creature.target = newTarget;
       } else {
         // just turn towards where you would have gone
         // TODO: doesn't work this way
-        //this.targetAngle = MathHelper.angleTo(this.body.getPosition(), newTarget);
+        //creature.targetAngle = MathHelper.angleTo(creature.body.getPosition(), newTarget);
+      }
+    }
+  }
+}
+
+function CreatureStatePanic(creature) {
+  this.type = "panic";
+  var steps = 0;
+
+  // freak out!!!
+  creature.curTurnSpeed = creature.maxTurnSpeed;
+  creature.curAcceleration = creature.maxAcceleration;
+
+  this.step = function() {
+    steps += 1;
+    if(steps >= 20 && Math.floor(Math.random() * 20) == 1) {
+      steps = 0;
+
+      for(var i=0; i<10; i++) {
+        var distance = Math.random() * 5.0 + 8.0;
+        var newTarget = Vec2(
+          creature.body.getPosition().x + distance * Math.cos(Math.random() * Math.PI*2),
+          creature.body.getPosition().y + distance * Math.cos(Math.random() * Math.PI*2)
+        );
+
+        // make sure we have line of sight to the new target
+        var callback = RayCastAnyCallback();
+        world.rayCast(creature.body.getPosition(), newTarget, callback.ReportFixture);
+        if(callback.m_hit == false) {
+          creature.target = newTarget;
+          break;
+        }
       }
     }
   }
