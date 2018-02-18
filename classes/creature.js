@@ -1,45 +1,49 @@
-function Creature(world) {
-  this.type = "creature";
-  this.maxSpeed = 20.0;
-  this.maxTurnSpeed = 16.0;
-  this.maxAcceleration = 80.0;
+class Creature {
+  constructor(world) {
+    this.type = "creature";
+    this.maxSpeed = 20.0;
+    this.maxTurnSpeed = 16.0;
+    this.maxAcceleration = 80.0;
 
-  this.curSpeed = 0.0;
-  this.curTurnSpeed = 0.0;
-  this.curAcceleration = 0.0;
-  this.state = new CreatureStateRelaxed(this);
-  //this.state = new CreatureStatePanic(this);
+    this.curSpeed = 0.0;
+    this.curTurnSpeed = 0.0;
+    this.curAcceleration = 0.0;
+    this.state = new CreatureStateRelaxed(this);
+    //this.state = new CreatureStatePanic(this);
 
-  this.body = world.createBody({
-    type: 'dynamic',
-    position: Vec2(Math.random()*40.0 - 20.0, Math.random()*20.0 - 10.0),
-    angle: Math.random() * Math.PI*2,
-    linearDamping: 7.0,
-    angularDamping: 7.0
-  });
+    this.body = world.createBody({
+      type: 'dynamic',
+      position: Vec2(Math.random()*40.0 - 20.0, Math.random()*20.0 - 10.0),
+      angle: Math.random() * Math.PI*2,
+      linearDamping: 7.0,
+      angularDamping: 7.0
+    });
 
-  this.target = Vec2(this.body.getPosition().x, this.body.getPosition().y);
-  this.targetAngle = Math.random() * Math.PI*2;
+    this.target = Vec2(this.body.getPosition().x, this.body.getPosition().y);
+    this.targetAngle = Math.random() * Math.PI*2;
 
-  this.mainPart = this.body.createFixture({
-    shape: pl.Circle(1.0),
-    friction: 0.5,
-    restitution: 0.8,
-    density: 1.0
-  });
+    this.mainPart = this.body.createFixture({
+      shape: pl.Circle(1.0),
+      friction: 0.5,
+      restitution: 0.8,
+      density: 1.0
+    });
 
-  this.sensorSize = 10.0;
-  this.sensor = this.body.createFixture({
-    shape: pl.Circle(this.sensorSize),
-    isSensor: true
-  });
+    this.sensorSize = 10.0;
+    this.sensor = this.body.createFixture({
+      shape: pl.Circle(this.sensorSize),
+      isSensor: true
+    });
 
-  this.panicCountdown = 0;
-  this.panic = function() {
-    this.panicCountdown = 60 * 10;
+    this.panicCountdown = 0;
+    this.panic = function() {
+      this.panicCountdown = 60 * 10;
+    }
+
+    this.lastTargetAngleChange = Date.now();
   }
 
-  this.step = function() {
+  step() {
 
     // BEHAVIOR
 
@@ -125,21 +129,23 @@ function Creature(world) {
     if(this.body.getAngle() > Math.PI * 2) {
       this.body.setAngle( curAngle );
     }
-  };
+  }
 
-  this.render = function(ctx) {
+  render(ctx) {
     // body
     Renderer.renderCircle(ctx, this.body.getPosition(), 1.0);
 
-    // target angle
-    // Renderer.renderEdge(ctx,
-    //   Vec2(this.body.getPosition().x, this.body.getPosition().y),
-    //   Vec2(
-    //     this.body.getPosition().x + 2.0 * Math.cos(this.targetAngle),
-    //     this.body.getPosition().y + 2.0 * Math.sin(this.targetAngle)
-    //   ),
-    //   "rgb(200,0,0)"
-    // );
+    if(debugRendering) {
+      // target angle
+      Renderer.renderEdge(ctx,
+        Vec2(this.body.getPosition().x, this.body.getPosition().y),
+        Vec2(
+          this.body.getPosition().x + 2.0 * Math.cos(this.targetAngle),
+          this.body.getPosition().y + 2.0 * Math.sin(this.targetAngle)
+        ),
+        "rgb(200,0,0)"
+      );
+    }
 
     // current angle
     Renderer.renderEdge(ctx,
@@ -152,12 +158,12 @@ function Creature(world) {
     );
 
     // target
-    //Renderer.renderCircle(ctx, this.target, 0.2, "rgba(200,0,0,0.5)");
+    if(debugRendering) {
+      Renderer.renderCircle(ctx, this.target, 0.2, "rgba(200,0,0,0.5)");
+    }
   };
 
-  this.lastTargetAngleChange = Date.now();
-
-  this.handleCollision = function(ownFixture, otherWorldObject) {
+  handleCollision(ownFixture, otherWorldObject) {
     if(Date.now() - this.lastTargetAngleChange > 1000) {
       this.targetAngle += Math.PI/2 + Math.random() * Math.PI;
       if(this.targetAngle < 0) { this.targetAngle += Math.PI*2; }
@@ -231,3 +237,4 @@ function CreatureStatePanic(creature) {
     }
   }
 }
+

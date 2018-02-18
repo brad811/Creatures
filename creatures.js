@@ -76,9 +76,11 @@ var onMouseMove = function(e) {
 };
 canvas.addEventListener("mousemove", onMouseMove);
 
-
-
-
+var debugRendering = false;
+var debugCheckbox = document.getElementById('debug');
+debugCheckbox.onchange = function() {
+  debugRendering = debugCheckbox.checked;
+}
 
 
 
@@ -132,6 +134,8 @@ worldObjects.push( new Box(world, Vec2(-20.0, 0.0), Vec2(10.0, 10.0)) );
 for(var i=0; i<10; i++) {
   worldObjects.push( new Creature(world) );
 }
+
+worldObjects.push( new Predator(world) );
 
 var panicCountdown = 60 * 10;
 var panicButton = document.getElementById('panic');
