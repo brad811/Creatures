@@ -54,4 +54,11 @@ class Renderer {
 
     //ctx.fillRect(20,20,150,100);
   }
+
+  static renderText(ctx, text, position, size, color = "rgb(0,0,0)") {
+    ctx.fillStyle = color;
+    ctx.font = "" + (size * worldSizeRatio) + "px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(text, Renderer.worldAdjustX(position.x), Renderer.worldAdjustY(position.y));
+  }
 }

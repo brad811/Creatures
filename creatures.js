@@ -90,8 +90,42 @@ var world = planck.World();
 
 // STAGE
 
-
 function RayCastAnyCallback() {
+  var def = {};
+
+  def.m_hit = false;
+  def.m_point = null;
+  def.m_normal = null;
+
+  console.log("THIS SHOULD NOT BE HAPPENING!!!! 1");
+
+  def.ReportFixture = function(fixture, point, normal, fraction) {
+    var body = fixture.getBody();
+    var userData = body.getUserData();
+    console.log("THIS SHOULD NOT BE HAPPENING!!!! 2");
+    if (userData) {
+      if (userData == 0) {
+        // By returning -1, we instruct the calling code to ignore this fixture
+        // and continue the ray-cast to the next fixture.
+        return -1.0;
+      }
+
+      console.log("raycast fixture: " + fixture);
+    }
+
+    def.m_hit = true;
+    def.m_point = point;
+    def.m_normal = normal;
+
+    // At this point we have a hit, so we know the ray is obstructed.
+    // By returning 0, we instruct the calling code to terminate the ray-cast.
+    return 0.0;
+  }.bind(this);
+
+  return def;
+}
+
+function RayCastSolidCallback() {
   var def = {};
 
   def.m_hit = false;
@@ -109,6 +143,10 @@ function RayCastAnyCallback() {
       }
     }
 
+    if(fixture.getUserData().isSolid == false) {
+      return -1.0;
+    }
+
     def.m_hit = true;
     def.m_point = point;
     def.m_normal = normal;
@@ -120,7 +158,6 @@ function RayCastAnyCallback() {
 
   return def;
 }
-
 
 
 worldObjects.push( new Wall(world, Vec2(-40.0, -20.0), Vec2(40.0, -20.0)) );
@@ -177,10 +214,36 @@ world.on('begin-contact', function(contact, oldManifold) {
     if(objectA && objectB) break;
   }
 
-  objectA.handleCollision(fixtureA, objectB);
-  objectB.handleCollision(fixtureB, objectA);
+  objectA.handleCollision(fixtureA, fixtureB);
+  objectB.handleCollision(fixtureB, fixtureA);
 
   // var worldManifold = contact.getWorldManifold();
+});
+
+world.on('end-contact', function(contact, oldManifold) {
+  var fixtureA = contact.getFixtureA();
+  var fixtureB = contact.getFixtureB();
+
+  var bodyA = fixtureA.getBody();
+  var bodyB = fixtureB.getBody();
+
+  var objectA, objectB;
+
+  for(i in worldObjects) {
+    if(bodyA == worldObjects[i].body) {
+      objectA = worldObjects[i];
+    }
+
+    if(bodyB == worldObjects[i].body) {
+      objectB = worldObjects[i];
+    }
+
+    // both object have been found
+    if(objectA && objectB) break;
+  }
+
+  objectA.handleCollisionEnd(fixtureA, fixtureB);
+  objectB.handleCollisionEnd(fixtureB, fixtureA);
 });
 
 var gameLoop = function(callback) {

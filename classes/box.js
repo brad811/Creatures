@@ -1,15 +1,25 @@
-function Box(world, position, size) {
-  this.type = "box";
-  this.body = world.createBody();
+class Box {
+  constructor(world, position, size) {
+    this.type = "box";
+    this.body = world.createBody();
+    this.body.setPosition(position);
+    this.body.createFixture({
+      shape: pl.Box(size.x/2, size.y/2),
+      userData: {
+        type: "object",
+        isSolid: true,
+        parentObject: this
+      }
+    });
+    this.size = size;
+  }
 
-  this.body.createFixture(pl.Box(size.x/2, size.y/2));
-  this.body.setPosition(position);
+  step() {}
 
-  this.step = function() {};
+  render(ctx) {
+    Renderer.renderBox(ctx, this.body.getPosition(), this.size);
+  }
 
-  this.render = function(ctx) {
-    Renderer.renderBox(ctx, this.body.getPosition(), size);
-  };
-
-  this.handleCollision = function(ownFixture, otherWorldObject) {};
+  handleCollision(ownFixture, otherFixture) {}
+  handleCollisionEnd(ownFixture, otherFixture) {}
 }
