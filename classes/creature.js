@@ -83,7 +83,7 @@ function Creature(world) {
 
     var distToTarget = MathHelper.linearDistance(this.body.getPosition(), this.target);
 
-    // acceleration ┼                                                  ╭────────────────────────────
+    //              ┼                                                  ╭────────────────────────────
     //              ┤                ╭─────────────────────────────────╯
     //              ┤         ╭──────╯
     //              ┤      ╭──╯
@@ -93,7 +93,9 @@ function Creature(world) {
     //              ┤ ╭╯
     //              ┤╭╯
     //              ┤│
-    //         rest ┼╯
+    // acceleration ┼╯
+    //              ╰───────────────────────────────────────────────────────────────────────────────
+    //                distance to target
     var accelerationForce = this.curAcceleration * ( Math.atan(distToTarget/4.0) / (Math.PI/2) );
     //var accelerationForce = this.acceleration * (distToTarget/20.0);
 
