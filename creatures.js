@@ -8,7 +8,7 @@ var ctx = canvas.getContext('2d');
 // camera zoom
 var
   minZoom = 1,
-  maxZoom = 15,
+  maxZoom = 20,
   originalZoom = 8;
 var worldSizeRatio = originalZoom;
 var zoomSlider = document.getElementById('zoom');
@@ -179,7 +179,7 @@ var panicButton = document.getElementById('panic');
 panicButton.onclick = function() {
   console.log("Everybody freak out!!!");
   for(i in worldObjects) {
-    if(worldObjects[i].type == "creature") {
+    if(worldObjects[i].type == "creature" || worldObjects[i].type == "predator") {
       worldObjects[i].panic();
     }
   }
