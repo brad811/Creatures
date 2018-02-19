@@ -12,6 +12,8 @@ class Box {
       }
     });
     this.size = size;
+    this.sizeX = size.x;
+    this.sizeY = size.y;
   }
 
   step() {}

@@ -11,8 +11,19 @@ class Wall {
       }
     });
 
+    // the default getPosition will always return 0.0,0.0 for this body
+    this.body.getPosition = function() {
+      return Vec2(
+        (v1.x + v2.x) / 2,
+        (v1.y + v2.y) / 2
+      );
+    };
+
     this.v1 = v1;
     this.v2 = v2;
+
+    this.sizeX = Math.abs(v2.x - v1.x);
+    this.sizeY = Math.abs(v2.y - v1.y);
   }
 
   step() {}

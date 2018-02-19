@@ -1,5 +1,7 @@
-class Creature {
+class Creature extends LifeForm {
   constructor(world) {
+    super(world);
+
     this.type = "creature";
     this.maxSpeed = 20.0;
     this.maxTurnSpeed = 16.0;
@@ -11,6 +13,10 @@ class Creature {
     this.state = new CreatureStateRelaxed(this);
 
     this.color = "rgb(80, 80, 80)";
+
+    this.size = 2.0;
+    this.sizeX = this.size;
+    this.sizeY = this.size;
 
     this.body = world.createBody({
       type: 'dynamic',
@@ -24,7 +30,7 @@ class Creature {
     this.targetAngle = Math.random() * Math.PI*2;
 
     this.mainPart = this.body.createFixture({
-      shape: pl.Circle(1.0),
+      shape: pl.Circle(this.size/2),
       friction: 0.5,
       restitution: 0.8,
       density: 1.0,
@@ -175,7 +181,7 @@ class Creature {
     }
 
     // body
-    Renderer.renderCircle(ctx, this.body.getPosition(), 1.0, this.color);
+    Renderer.renderCircle(ctx, this.body.getPosition(), this.size/2, this.color);
 
     if(debugRendering) {
       // target angle
@@ -193,8 +199,8 @@ class Creature {
     Renderer.renderEdge(ctx,
       Vec2(this.body.getPosition().x, this.body.getPosition().y),
       Vec2(
-        this.body.getPosition().x + 1.0 * Math.cos(this.body.getAngle()),
-        this.body.getPosition().y + 1.0 * Math.sin(this.body.getAngle())
+        this.body.getPosition().x + this.size/2 * Math.cos(this.body.getAngle()),
+        this.body.getPosition().y + this.size/2 * Math.sin(this.body.getAngle())
       ),
       "rgb(200,200,200)"
     );
@@ -345,11 +351,11 @@ class CreatureStateRunFromThreat {
         world.rayCast(this.creature.body.getPosition(), newTarget, callback.ReportFixture);
         if(callback.m_hit == false) {
           this.creature.target = newTarget;
-          console.log("Succeeded running away");
+          //console.log("Succeeded running away");
           break;
         }
 
-        console.log("Failed to run away");
+        //console.log("Failed to run away");
       }
     }
 

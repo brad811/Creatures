@@ -159,14 +159,61 @@ function RayCastSolidCallback() {
   return def;
 }
 
+function WouldIntersectAnything(position, size) {
+  if(
+      position.x > worldSize.x/2 ||
+      position.x < -worldSize.x/2 ||
+      position.y > worldSize.y/2 ||
+      position.y < -worldSize.y/2
+      ) {
+    return true;
+  }
 
-worldObjects.push( new Wall(world, Vec2(-40.0, -20.0), Vec2(40.0, -20.0)) );
-worldObjects.push( new Wall(world, Vec2(-40.0, -20.0), Vec2(-40.0, 20.0)) );
-worldObjects.push( new Wall(world, Vec2(40.0, -20.0), Vec2(40.0, 20.0)) );
-worldObjects.push( new Wall(world, Vec2(-40.0, 20.0), Vec2(40.0, 20.0)) );
+  for(var i in worldObjects) {
+    var worldObject = worldObjects[i];
+    var xDistance = Math.abs(worldObject.body.getPosition().x - position.x);
+    var yDistance = Math.abs(worldObject.body.getPosition().y - position.y);
+
+    // TODO: great for squares, less accurate for circles
+    //console.log("Testing: p("+position.x.toFixed(2)+","+position.y.toFixed(2)+")s("+size.x+","+size.y+") vs ["+worldObject.type+"]p("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")s("+worldObject.sizeX+","+worldObject.sizeY+")");
+
+    if(xDistance < worldObject.sizeX/2 + size.x/2 && yDistance < worldObject.sizeY/2 + size.y/2) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+var worldSize = Vec2(70.0, 50.0);
+
+worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(worldSize.x/2, -worldSize.y/2)) );
+worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(-worldSize.x/2, worldSize.y/2)) );
+worldObjects.push( new Wall(world, Vec2(worldSize.x/2, -worldSize.y/2), Vec2(worldSize.x/2, worldSize.y/2)) );
+worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, worldSize.y/2), Vec2(worldSize.x/2, worldSize.y/2)) );
 
 worldObjects.push( new Box(world, Vec2(20.0, 0.0), Vec2(10.0, 10.0)) );
 worldObjects.push( new Box(world, Vec2(-20.0, 0.0), Vec2(10.0, 10.0)) );
+
+// TODO: make sizes either all Vec2, or all floats, not a mix
+
+for(var i=0; i<20; i++) {
+  for(var tries=0; tries<20; tries++) {
+    var position = Vec2(Math.random()*80.0 - 40.0, Math.random()*40.0 - 20.0);
+
+    if(!WouldIntersectAnything(position, Vec2(1.0, 1.0))) {
+      worldObjects.push( new Plant(world, position) );
+      break;
+    }
+    // else {
+    //   // draw failed attempts to place plants in red
+    //   console.log("Fail!");
+    //   var redPlant = new Plant(world, position);
+    //   redPlant.color = "rgb(150,0,0)";
+    //   worldObjects.push(redPlant);
+    // }
+  }
+}
 
 for(var i=0; i<10; i++) {
   worldObjects.push( new Creature(world) );
@@ -246,9 +293,38 @@ world.on('end-contact', function(contact, oldManifold) {
   objectB.handleCollisionEnd(fixtureB, fixtureA);
 });
 
+var lastGeneCheck = 0;
+
+// TODO: add world speed modifier so we can speed things up with a slider
+
 var gameLoop = function(callback) {
   // in each frame call world.step(timeStep) with fixed timeStep
   world.step(1 / 60);
+
+  // print out average genes every 5 minutes
+  if((Date.now() - lastGeneCheck) / 1000 > 300) {
+    lastGeneCheck = Date.now();
+    var avg = {};
+
+    for(i in worldObjects) {
+      var type = worldObjects[i].type
+      if(avg[type] == undefined) { avg[type] = {}; }
+
+      var genes = worldObjects[i].genes;
+      for(var key in genes) {
+        if(avg[type][key] == undefined) { avg[type][key] = []; }
+        avg[type][key].push(genes[key]);
+      }
+    }
+
+    console.log("Average genes ==========");
+    for(var type in avg) {
+      console.log(type + " ----------");
+      for(var key in avg[type]) {
+        console.log(key + ": " + (avg[type][key].reduce((a, b) => a + b, 0) / avg[type][key].length).toFixed(2));
+      }
+    }
+  }
 
   // physics
   for(i in worldObjects) {
@@ -272,24 +348,6 @@ var gameLoop = function(callback) {
   for(i in worldObjects) {
     worldObjects[i].render(ctx);
   }
-
-  // // iterate over bodies and fixtures
-  // for (var body = world.getBodyList(); body; body = body.getNext()) {
-  //   var bodyPosition = body.getPosition();
-  //   for (var fixture = body.getFixtureList(); fixture; fixture = fixture.getNext()) {
-  //     // draw or update fixture
-  //     var shape = fixture.getShape();
-  //     var shapeType = shape.getType();
-  //     if(shapeType == 'circle') {
-  //       //console.log("Drawing circle: ("+bodyPosition.x+","+bodyPosition.y+","+fixture.getShape().radius+")");
-  //       Renderer.renderCircle(ctx, bodyPosition, 1.0);
-  //     } else if(shapeType == 'edge') {
-  //       Renderer.renderEdge(ctx, shape.m_vertex1, shape.m_vertex2);
-  //     } else {
-  //       console.log("shape type: " + fixture.getShape().getType());
-  //     }
-  //   }
-  // }
 
   window.setTimeout(function() { gameLoop(gameLoop); }, 1000 / 60);
 };
