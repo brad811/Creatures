@@ -1,5 +1,6 @@
-class Wall {
+class Wall extends WorldObject {
   constructor(world, v1, v2) {
+    super(world);
     this.type = "wall";
     this.body = world.createBody();
     this.body.createFixture({
@@ -19,6 +20,7 @@ class Wall {
       );
     };
 
+    this.shape = "rectangle";
     this.v1 = v1;
     this.v2 = v2;
 

@@ -1,5 +1,7 @@
-class Box {
+class Box extends WorldObject {
   constructor(world, position, size) {
+    super(world);
+
     this.type = "box";
     this.body = world.createBody();
     this.body.setPosition(position);
@@ -11,6 +13,8 @@ class Box {
         parentObject: this
       }
     });
+
+    this.shape = "rectangle";
     this.size = size;
     this.sizeX = size.x;
     this.sizeY = size.y;

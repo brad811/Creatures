@@ -159,7 +159,15 @@ function RayCastSolidCallback() {
   return def;
 }
 
-function WouldIntersectAnything(position, size) {
+function WouldCircleIntersectAnything(position, size) {
+  return WouldIntersectAnything("circle", position, size);
+}
+
+function WouldRectangleIntersectAnything(position, size) {
+  return WouldIntersectAnything("rectangle", position, size);
+}
+
+function WouldIntersectAnything(type, position, size) {
   if(
       position.x > worldSize.x/2 ||
       position.x < -worldSize.x/2 ||
@@ -171,14 +179,62 @@ function WouldIntersectAnything(position, size) {
 
   for(var i in worldObjects) {
     var worldObject = worldObjects[i];
-    var xDistance = Math.abs(worldObject.body.getPosition().x - position.x);
-    var yDistance = Math.abs(worldObject.body.getPosition().y - position.y);
 
-    // TODO: great for squares, less accurate for circles
-    //console.log("Testing: p("+position.x.toFixed(2)+","+position.y.toFixed(2)+")s("+size.x+","+size.y+") vs ["+worldObject.type+"]p("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")s("+worldObject.sizeX+","+worldObject.sizeY+")");
+    //console.log("WouldIntersectAnything: ("+type+","+position+","+size.x+","+size.y+"), worldObject: "+worldObject.type+"(" + worldObject.shape + ")");
 
-    if(xDistance < worldObject.sizeX/2 + size.x/2 && yDistance < worldObject.sizeY/2 + size.y/2) {
-      return true;
+    if(type == "circle" && worldObject.shape == "circle") {
+      // They're both circles, just see if they're too close to each other
+      //console.log("distance between " + position + " and " + worldObject.body.getPosition() + " is " + MathHelper.linearDistance(position, worldObject.body.getPosition()));
+      if( MathHelper.linearDistance(position, worldObject.body.getPosition()) < size.x )
+        return true;
+    } else if(type == "rectangle" && worldObject.shape == "rectangle") {
+      var xDistance = Math.abs(worldObject.body.getPosition().x - position.x);
+      var yDistance = Math.abs(worldObject.body.getPosition().y - position.y);
+
+      // TODO: great for squares, less accurate for circles
+      //console.log("Testing: p("+position.x.toFixed(2)+","+position.y.toFixed(2)+")s("+size.x+","+size.y+") vs ["+worldObject.type+"]p("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")s("+worldObject.sizeX+","+worldObject.sizeY+")");
+
+      if(xDistance < worldObject.sizeX/2 + size.x/2 && yDistance < worldObject.sizeY/2 + size.y/2) {
+        //console.log("would intersect: " + worldObject.type + " at ("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")");
+        return true;
+      }
+    } else if(type == "rectangle" || worldObject.shape == "rectangle") {
+
+      if(type == "rectangle") {
+        var
+          circleX = worldObject.body.getPosition().x,
+          circleY = worldObject.body.getPosition().y,
+          circleSize = worldObject.sizeX,
+          rectX = position.x,
+          rectY = position.y,
+          rectSizeX = size.x,
+          rectSizeY = size.y;
+      } else {
+        var
+          circleX = position.x,
+          circleY = position.y,
+          circleSize = size.x,
+          rectX = worldObject.body.getPosition().x,
+          rectY = worldObject.body.getPosition().y,
+          rectSizeX = worldObject.sizeX,
+          rectSizeY = worldObject.sizeY;
+      }
+
+      var circleDistance = Vec2(
+        Math.abs(circleX - rectX),
+        Math.abs(circleY - rectY)
+      );
+
+      if (circleDistance.x > (rectSizeX/2 + circleSize)) { continue; }
+      if (circleDistance.y > (rectSizeY/2 + circleSize)) { continue; }
+
+      if (circleDistance.x <= (rectSizeX/2)) { return true; } 
+      if (circleDistance.y <= (rectSizeY/2)) { return true; }
+
+      var cornerDistance_sq = Math.pow(circleDistance.x - rectSizeX/2, 2) +
+                           Math.pow(circleDistance.y - rectSizeY/2, 2);
+
+      return (cornerDistance_sq <= (circleSize*circleSize));
     }
   }
 
@@ -186,6 +242,11 @@ function WouldIntersectAnything(position, size) {
 }
 
 var worldSize = Vec2(70.0, 50.0);
+//var worldSize = Vec2(10.0, 10.0);
+var
+  numPlants = 10,
+  numCreatures = 10,
+  numPredators = 1;
 
 worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(worldSize.x/2, -worldSize.y/2)) );
 worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(-worldSize.x/2, worldSize.y/2)) );
@@ -197,11 +258,11 @@ worldObjects.push( new Box(world, Vec2(-20.0, 0.0), Vec2(10.0, 10.0)) );
 
 // TODO: make sizes either all Vec2, or all floats, not a mix
 
-for(var i=0; i<20; i++) {
+for(var i=0; i<numPlants; i++) {
   for(var tries=0; tries<20; tries++) {
     var position = Vec2(Math.random()*80.0 - 40.0, Math.random()*40.0 - 20.0);
 
-    if(!WouldIntersectAnything(position, Vec2(1.0, 1.0))) {
+    if(!WouldCircleIntersectAnything(position, Vec2(1.0, 1.0))) {
       worldObjects.push( new Plant(world, position) );
       break;
     }
@@ -215,11 +276,13 @@ for(var i=0; i<20; i++) {
   }
 }
 
-for(var i=0; i<10; i++) {
+for(var i=0; i<numCreatures; i++) {
   worldObjects.push( new Creature(world) );
 }
 
-worldObjects.push( new Predator(world) );
+for(var i=0; i<numPredators; i++) {
+  worldObjects.push( new Predator(world) );
+}
 
 var panicCountdown = 60 * 10;
 var panicButton = document.getElementById('panic');
@@ -261,8 +324,11 @@ world.on('begin-contact', function(contact, oldManifold) {
     if(objectA && objectB) break;
   }
 
-  objectA.handleCollision(fixtureA, fixtureB);
-  objectB.handleCollision(fixtureB, fixtureA);
+  if(objectA != undefined)
+    objectA.handleCollision(fixtureA, fixtureB);
+  
+  if(objectB != undefined)
+    objectB.handleCollision(fixtureB, fixtureA);
 
   // var worldManifold = contact.getWorldManifold();
 });
@@ -289,8 +355,11 @@ world.on('end-contact', function(contact, oldManifold) {
     if(objectA && objectB) break;
   }
 
-  objectA.handleCollisionEnd(fixtureA, fixtureB);
-  objectB.handleCollisionEnd(fixtureB, fixtureA);
+  if(objectA != undefined)
+    objectA.handleCollisionEnd(fixtureA, fixtureB);
+  
+  if(objectB != undefined)
+    objectB.handleCollisionEnd(fixtureB, fixtureA);
 });
 
 var lastGeneCheck = 0;

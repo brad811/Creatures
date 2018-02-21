@@ -14,6 +14,7 @@ class Creature extends LifeForm {
 
     this.color = "rgb(80, 80, 80)";
 
+    this.shape = "circle";
     this.size = 2.0;
     this.sizeX = this.size;
     this.sizeY = this.size;
