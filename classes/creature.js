@@ -99,8 +99,10 @@ class Creature extends LifeForm {
           return;
         } else if(this.state.type == "hungry" && smellWorldObject.type == "plant" && smellWorldObject.deathTime == -1) {
           if(this.state.type != "head-for-food") {
-            //change to state if we're not already in it
-            this.state = new CreatureStateHeadForFood(this, smellWorldObject);
+            // TODO: move this to the hungry state?
+            // change to state if we're not already in it
+            this.state = new CreatureStateHeadForFood(this);
+            return;
           }
         }
       }
@@ -467,10 +469,23 @@ class CreatureStateHungry {
 }
 
 class CreatureStateHeadForFood {
-  constructor(creature, food) {
+  constructor(creature) {
     this.type = "head-for-food";
     this.creature = creature;
-    this.food = food;
+
+    var minDistance = 1000000;
+    var closestFood;
+    for(const smellWorldObject of this.creature.smells) {
+      if(smellWorldObject.type == "plant" && smellWorldObject.deathTime == -1) {
+        var distance = MathHelper.linearDistance(this.creature.body.getPosition(), smellWorldObject.body.getPosition());
+        if(distance < minDistance) {
+          minDistance = distance;
+          closestFood = smellWorldObject;
+        }
+      }
+    }
+
+    this.food = closestFood;
 
     // go 30% speed
     creature.curTurnSpeed = creature.maxTurnSpeed * 0.5;
@@ -489,5 +504,3 @@ class CreatureStateHeadForFood {
     }
   }
 }
-
-
