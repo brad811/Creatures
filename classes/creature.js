@@ -12,7 +12,7 @@ class Creature extends LifeForm {
     this.curAcceleration = 0.0;
     this.state = new CreatureStateRelaxed(this);
 
-    this.color = "rgb(80, 80, 80)";
+    this.color = "rgb(120, 120, 120)";
 
     this.shape = "circle";
     this.size = 2.0;
@@ -54,21 +54,30 @@ class Creature extends LifeForm {
     });
     this.smells = new Set([]);
 
-    this.panicCountdown = 0;
+    this.stateFinishTime = 0;
     this.panic = function() {
-      this.panicCountdown = 60 * 10;
+      this.state = new CreatureStatePanic(this);
+      this.stateFinishTime = Date.now() + 10*1000;
     }
 
     this.lastTargetAngleChange = Date.now();
+
+    this.genes = {
+      mutationRate: 1.0, // percent
+      //reproductionTime: 60.0, // seconds
+      maxEnergy: 10.0,
+      energyUse: 0.1, // per second
+      //lifespan: 300.0, // seconds
+      decayTime: 100.0 // seconds
+    };
+
+    this.curEnergy = this.genes["maxEnergy"];
+    this.lastEnergyLoss = Date.now();
   }
 
   determineBehaviorState() {
-    if(this.panicCountdown > 0) {
-      if(this.state.type != "panic") {
-        this.state = new CreatureStatePanic(this);
-      } else {
-        this.panicCountdown -= 1;
-      }
+    if(this.stateFinishTime > Date.now()) {
+      // we have to stay in our current state a little longer
     } else if(this.state.type == "panic") {
       this.state = new CreatureStateRelaxed(this);
     } else {
@@ -83,9 +92,26 @@ class Creature extends LifeForm {
             this.state = new CreatureStateRunFromThreat(this, smellWorldObject);
           }
 
+          // we still smell it, keep running!
+          this.stateFinishTime = Date.now() + 1*1000;
+
           // don't check more smells or become relaxed
           return;
+        } else if(this.state.type == "hungry" && smellWorldObject.type == "plant" && smellWorldObject.deathTime == -1) {
+          if(this.state.type != "head-for-food") {
+            //change to state if we're not already in it
+            this.state = new CreatureStateHeadForFood(this, smellWorldObject);
+          }
         }
+      }
+
+      // see if we are hungry
+      if(this.curEnergy <= this.genes["maxEnergy"] * 0.9) {
+        if(this.state.type != "hungry" && this.state.type != "head-for-food") {
+          this.state = new CreatureStateHungry(this);
+        }
+
+        return;
       }
 
       // nothing going on, we're chill
@@ -96,6 +122,28 @@ class Creature extends LifeForm {
   }
 
   step() {
+
+    if(this.deathTime != -1) {
+      if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
+        // don't do this here, add it to a list of "to be removed" items,
+        // and let the world step handle it
+        worldObjects.splice( worldObjects.indexOf(this), 1 );
+        world.destroyBody(this.body);
+        return;
+      }
+
+      return;
+    }
+
+    if(Date.now() - this.lastEnergyLoss > 1000) {
+      this.curEnergy -= this.genes["energyUse"];
+      this.lastEnergyLoss = Date.now();
+    }
+
+    if(this.curEnergy <= 0) {
+      this.deathTime = Date.now();
+      this.color = "rgba(180, 180, 180, 0.4)";
+    }
 
     // BEHAVIOR
 
@@ -212,7 +260,26 @@ class Creature extends LifeForm {
 
       // state
       var curPosition = this.body.getPosition();
+      Renderer.renderText(ctx, this.type.toUpperCase(), Vec2(curPosition.x, curPosition.y - 2.5), 1.3)
       Renderer.renderText(ctx, this.state.type, Vec2(curPosition.x, curPosition.y - 1.2), 1.5)
+    }
+
+    // energy
+    if(this.deathTime == -1) {
+      var blue = Math.min(250, Math.floor(250*(this.curEnergy/this.genes["maxEnergy"])));
+      var red = Math.max(0, Math.floor(250 - blue));
+      Renderer.renderCircle(ctx, this.body.getPosition(), this.size/6, "rgb("+red+",100,"+blue+")");
+
+      ctx.beginPath();
+      ctx.fillStyle = "rgb(255,255,255)";
+      ctx.lineWidth = 1;
+      ctx.arc(
+        Renderer.worldAdjustX(this.body.getPosition().x),
+        Renderer.worldAdjustY(this.body.getPosition().y),
+        this.size/6 * worldSizeRatio,
+        0, 2 * Math.PI, false
+      );
+      ctx.stroke();
     }
   }
 
@@ -228,8 +295,7 @@ class Creature extends LifeForm {
     var otherWorldObject = otherFixture.getUserData().parentObject;
 
     if(ownFixture.getUserData().type == 'sensor'
-        && otherFixture.getUserData().type == "body"
-        && otherWorldObject.type == "predator") {
+        && otherFixture.getUserData().type == "body") {
       // this is something we can currently smell
       this.smells.add(otherWorldObject);
     }
@@ -239,8 +305,7 @@ class Creature extends LifeForm {
     var otherWorldObject = otherFixture.getUserData().parentObject;
 
     if(ownFixture.getUserData().type == 'sensor'
-        && otherFixture.getUserData().type == "body"
-        && otherWorldObject.type == "predator") {
+        && otherFixture.getUserData().type == "body") {
       // this is something we coule previously smell
       this.smells.delete(otherWorldObject);
     }
@@ -253,9 +318,9 @@ class CreatureStateRelaxed {
     this.creature = creature;
     this.steps = 0;
 
-    // chill, just go quarter speed
-    creature.curTurnSpeed = creature.maxTurnSpeed / 3.0;
-    creature.curAcceleration = creature.maxAcceleration / 10.0;
+    // chill
+    creature.curTurnSpeed = creature.maxTurnSpeed * 0.3;
+    creature.curAcceleration = creature.maxAcceleration * 0.1;
   }
 
   step() {
@@ -352,14 +417,77 @@ class CreatureStateRunFromThreat {
         world.rayCast(this.creature.body.getPosition(), newTarget, callback.ReportFixture);
         if(callback.m_hit == false) {
           this.creature.target = newTarget;
-          //console.log("Succeeded running away");
           break;
         }
-
-        //console.log("Failed to run away");
       }
     }
 
     this.steps += 1;
   }
 }
+
+class CreatureStateHungry {
+  constructor(creature) {
+    this.type = "hungry";
+    this.creature = creature;
+    this.steps = 0;
+
+    // go 20% speed
+    creature.curTurnSpeed = creature.maxTurnSpeed * 0.4;
+    creature.curAcceleration = creature.maxAcceleration * 0.15;
+  }
+
+  step() {
+    this.steps += 1;
+    if(this.steps >= 50 && Math.floor(Math.random() * 20) == 1) {
+      this.steps = 0;
+
+      for(var i=0; i<10; i++) {
+        var range = Math.PI / 2 + (Math.PI * (i/10) );
+        var angle = this.creature.body.getAngle() - range/2 + Math.random()*range;
+        var distance = Math.random() * 4.0 + 4.0;
+        var newTarget = Vec2(
+          this.creature.body.getPosition().x + distance * Math.cos(angle),
+          this.creature.body.getPosition().y + distance * Math.sin(angle)
+        );
+
+        // make sure we have line of sight to the new target
+        var callback = RayCastSolidCallback();
+        world.rayCast(this.creature.body.getPosition(), newTarget, callback.ReportFixture);
+        if(callback.m_hit == false) {
+          this.creature.target = newTarget;
+        } else {
+          // just turn towards where you would have gone
+          // TODO: doesn't work this way
+          //creature.targetAngle = MathHelper.angleTo(creature.body.getPosition(), newTarget);
+        }
+      }
+    }
+  }
+}
+
+class CreatureStateHeadForFood {
+  constructor(creature, food) {
+    this.type = "head-for-food";
+    this.creature = creature;
+    this.food = food;
+
+    // go 30% speed
+    creature.curTurnSpeed = creature.maxTurnSpeed * 0.5;
+    creature.curAcceleration = creature.maxAcceleration * 0.2;
+  }
+
+  step() {
+    if(this.food == undefined || worldObjects.indexOf(this.food) == -1 || this.food.deathTime != -1) {
+      this.creature.state = new CreatureStateHungry(this.creature);
+    } else if(this.creature.target != this.food.body.getPosition()) {
+      this.creature.target = this.food.body.getPosition();
+    } else if( WouldIntersectWorldObject(this.creature.shape, this.creature.body.getPosition(), Vec2(this.creature.sizeX,this.creature.sizeY), this.food) ) {
+      worldObjects.splice( worldObjects.indexOf(this.food), 1 );
+      world.destroyBody(this.food.body);
+      this.creature.curEnergy += 2.0;
+    }
+  }
+}
+
+

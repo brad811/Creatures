@@ -97,12 +97,9 @@ function RayCastAnyCallback() {
   def.m_point = null;
   def.m_normal = null;
 
-  console.log("THIS SHOULD NOT BE HAPPENING!!!! 1");
-
   def.ReportFixture = function(fixture, point, normal, fraction) {
     var body = fixture.getBody();
     var userData = body.getUserData();
-    console.log("THIS SHOULD NOT BE HAPPENING!!!! 2");
     if (userData) {
       if (userData == 0) {
         // By returning -1, we instruct the calling code to ignore this fixture
@@ -181,61 +178,68 @@ function WouldIntersectAnything(type, position, size) {
     var worldObject = worldObjects[i];
 
     //console.log("WouldIntersectAnything: ("+type+","+position+","+size.x+","+size.y+"), worldObject: "+worldObject.type+"(" + worldObject.shape + ")");
-
-    if(type == "circle" && worldObject.shape == "circle") {
-      // They're both circles, just see if they're too close to each other
-      //console.log("distance between " + position + " and " + worldObject.body.getPosition() + " is " + MathHelper.linearDistance(position, worldObject.body.getPosition()));
-      if( MathHelper.linearDistance(position, worldObject.body.getPosition()) < size.x )
-        return true;
-    } else if(type == "rectangle" && worldObject.shape == "rectangle") {
-      var xDistance = Math.abs(worldObject.body.getPosition().x - position.x);
-      var yDistance = Math.abs(worldObject.body.getPosition().y - position.y);
-
-      // TODO: great for squares, less accurate for circles
-      //console.log("Testing: p("+position.x.toFixed(2)+","+position.y.toFixed(2)+")s("+size.x+","+size.y+") vs ["+worldObject.type+"]p("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")s("+worldObject.sizeX+","+worldObject.sizeY+")");
-
-      if(xDistance < worldObject.sizeX/2 + size.x/2 && yDistance < worldObject.sizeY/2 + size.y/2) {
-        //console.log("would intersect: " + worldObject.type + " at ("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")");
-        return true;
-      }
-    } else if(type == "rectangle" || worldObject.shape == "rectangle") {
-
-      if(type == "rectangle") {
-        var
-          circleX = worldObject.body.getPosition().x,
-          circleY = worldObject.body.getPosition().y,
-          circleSize = worldObject.sizeX,
-          rectX = position.x,
-          rectY = position.y,
-          rectSizeX = size.x,
-          rectSizeY = size.y;
-      } else {
-        var
-          circleX = position.x,
-          circleY = position.y,
-          circleSize = size.x,
-          rectX = worldObject.body.getPosition().x,
-          rectY = worldObject.body.getPosition().y,
-          rectSizeX = worldObject.sizeX,
-          rectSizeY = worldObject.sizeY;
-      }
-
-      var circleDistance = Vec2(
-        Math.abs(circleX - rectX),
-        Math.abs(circleY - rectY)
-      );
-
-      if (circleDistance.x > (rectSizeX/2 + circleSize)) { continue; }
-      if (circleDistance.y > (rectSizeY/2 + circleSize)) { continue; }
-
-      if (circleDistance.x <= (rectSizeX/2)) { return true; } 
-      if (circleDistance.y <= (rectSizeY/2)) { return true; }
-
-      var cornerDistance_sq = Math.pow(circleDistance.x - rectSizeX/2, 2) +
-                           Math.pow(circleDistance.y - rectSizeY/2, 2);
-
-      return (cornerDistance_sq <= (circleSize*circleSize));
+    if(WouldIntersectWorldObject(type, position, size, worldObject)) {
+      return true;
     }
+  }    
+
+  return false;
+}
+
+function WouldIntersectWorldObject(type, position, size, worldObject) {
+  if(type == "circle" && worldObject.shape == "circle") {
+    // They're both circles, just see if they're too close to each other
+    //console.log("distance between " + position + " and " + worldObject.body.getPosition() + " is " + MathHelper.linearDistance(position, worldObject.body.getPosition()));
+    if( MathHelper.linearDistance(position, worldObject.body.getPosition()) < size.x )
+      return true;
+  } else if(type == "rectangle" && worldObject.shape == "rectangle") {
+    var xDistance = Math.abs(worldObject.body.getPosition().x - position.x);
+    var yDistance = Math.abs(worldObject.body.getPosition().y - position.y);
+
+    // TODO: great for squares, less accurate for circles
+    //console.log("Testing: p("+position.x.toFixed(2)+","+position.y.toFixed(2)+")s("+size.x+","+size.y+") vs ["+worldObject.type+"]p("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")s("+worldObject.sizeX+","+worldObject.sizeY+")");
+
+    if(xDistance < worldObject.sizeX/2 + size.x/2 && yDistance < worldObject.sizeY/2 + size.y/2) {
+      //console.log("would intersect: " + worldObject.type + " at ("+worldObject.body.getPosition().x.toFixed(2)+","+worldObject.body.getPosition().y.toFixed(2)+")");
+      return true;
+    }
+  } else if(type == "rectangle" || worldObject.shape == "rectangle") {
+
+    if(type == "rectangle") {
+      var
+        circleX = worldObject.body.getPosition().x,
+        circleY = worldObject.body.getPosition().y,
+        circleSize = worldObject.sizeX,
+        rectX = position.x,
+        rectY = position.y,
+        rectSizeX = size.x,
+        rectSizeY = size.y;
+    } else {
+      var
+        circleX = position.x,
+        circleY = position.y,
+        circleSize = size.x,
+        rectX = worldObject.body.getPosition().x,
+        rectY = worldObject.body.getPosition().y,
+        rectSizeX = worldObject.sizeX,
+        rectSizeY = worldObject.sizeY;
+    }
+
+    var circleDistance = Vec2(
+      Math.abs(circleX - rectX),
+      Math.abs(circleY - rectY)
+    );
+
+    if (circleDistance.x > (rectSizeX/2 + circleSize)) { return false; }
+    if (circleDistance.y > (rectSizeY/2 + circleSize)) { return false; }
+
+    if (circleDistance.x <= (rectSizeX/2)) { return true; } 
+    if (circleDistance.y <= (rectSizeY/2)) { return true; }
+
+    var cornerDistance_sq = Math.pow(circleDistance.x - rectSizeX/2, 2) +
+                         Math.pow(circleDistance.y - rectSizeY/2, 2);
+
+    return (cornerDistance_sq <= (circleSize*circleSize));
   }
 
   return false;
@@ -244,9 +248,9 @@ function WouldIntersectAnything(type, position, size) {
 var worldSize = Vec2(70.0, 50.0);
 //var worldSize = Vec2(10.0, 10.0);
 var
-  numPlants = 10,
+  numPlants = 30,
   numCreatures = 10,
-  numPredators = 1;
+  numPredators = 2;
 
 worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(worldSize.x/2, -worldSize.y/2)) );
 worldObjects.push( new Wall(world, Vec2(-worldSize.x/2, -worldSize.y/2), Vec2(-worldSize.x/2, worldSize.y/2)) );

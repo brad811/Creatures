@@ -27,7 +27,7 @@ class Plant extends LifeForm {
     // TODO: some plants could have size, and eating shrinks them, and growing... grows them
     // TODO: things must have an energy cost, can't just endlessly reproduce for free
 
-    var timeMultiplier = 1;
+    var timeMultiplier = 2;
     this.genes = {
       mutationRate: 1.0, // percent
       reproductionTime: 60.0 / timeMultiplier, // seconds
