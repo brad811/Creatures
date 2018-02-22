@@ -76,15 +76,14 @@ class Creature extends LifeForm {
   }
 
   determineBehaviorState() {
+    // some states overpower other behaviors
     if(this.stateFinishTime > Date.now()) {
       // we have to stay in our current state a little longer
     } else if(this.state.type == "panic") {
       this.state = new CreatureStateRelaxed(this);
     } else {
-      // panic states overpower other behaviors
-
-      // see if we smell a predator
       for(const smellWorldObject of this.smells) {
+        // see if we smell a predator
         if(smellWorldObject.type == "predator") {
           // make sure we're running from the predator
           if(this.state.type != "run-from-threat") {
@@ -124,7 +123,6 @@ class Creature extends LifeForm {
   }
 
   step() {
-
     if(this.deathTime != -1) {
       if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
         // don't do this here, add it to a list of "to be removed" items,
@@ -137,14 +135,17 @@ class Creature extends LifeForm {
       return;
     }
 
+    // a second has passed, use up some energy
     if(Date.now() - this.lastEnergyLoss > 1000) {
       this.curEnergy -= this.genes["energyUse"];
       this.lastEnergyLoss = Date.now();
     }
 
+    // ran out of energy, time to die
     if(this.curEnergy <= 0) {
       this.deathTime = Date.now();
       this.color = "rgba(180, 180, 180, 0.4)";
+      return;
     }
 
     // BEHAVIOR
