@@ -156,15 +156,7 @@ function RayCastSolidCallback() {
   return def;
 }
 
-function WouldCircleIntersectAnything(position, size) {
-  return WouldIntersectAnything("circle", position, size);
-}
-
-function WouldRectangleIntersectAnything(position, size) {
-  return WouldIntersectAnything("rectangle", position, size);
-}
-
-function WouldIntersectAnything(type, position, size) {
+function WouldIntersectAnything(type, position, size, excludeTypes = []) {
   if(
       position.x > worldSize.x/2 ||
       position.x < -worldSize.x/2 ||
@@ -176,6 +168,9 @@ function WouldIntersectAnything(type, position, size) {
 
   for(var i in worldObjects) {
     var worldObject = worldObjects[i];
+    if(excludeTypes.indexOf(worldObject.type) > -1) {
+      continue;
+    }
 
     //console.log("WouldIntersectAnything: ("+type+","+position+","+size.x+","+size.y+"), worldObject: "+worldObject.type+"(" + worldObject.shape + ")");
     if(WouldIntersectWorldObject(type, position, size, worldObject)) {
@@ -266,7 +261,7 @@ for(var i=0; i<numPlants; i++) {
   for(var tries=0; tries<20; tries++) {
     var position = Vec2(Math.random()*80.0 - 40.0, Math.random()*40.0 - 20.0);
 
-    if(!WouldCircleIntersectAnything(position, Vec2(1.0, 1.0))) {
+    if(!WouldIntersectAnything("circle", position, Vec2(1.0, 1.0))) {
       worldObjects.push( new Plant(world, position) );
       break;
     }

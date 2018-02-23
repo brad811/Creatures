@@ -100,6 +100,11 @@ class Creature extends LifeForm {
           if(this.state.type != "head-for-food") {
             // TODO: move this to the hungry state?
             // change to state if we're not already in it
+
+            // TODO: check if we have line of sight to the food?
+            // creatures will get stuck behind other creatures
+            // (sometimes dead ones) trying to get to food they smell
+
             this.state = new CreatureStateHeadForFood(this);
             return;
           }
@@ -137,7 +142,7 @@ class Creature extends LifeForm {
 
         //console.log("Creature at ("+this.body.getPosition().x.toFixed(2)+","+this.body.getPosition().y.toFixed(2)+") trying: ("+newPosition.x.toFixed(2)+","+newPosition.y.toFixed(2)+") (distance: "+distance+")(actual: "+MathHelper.linearDistance(this.body.getPosition(), newPosition)+")");
 
-        if(!WouldCircleIntersectAnything(newPosition, Vec2(this.size, this.size))) {
+        if( !WouldIntersectAnything("circle", newPosition, Vec2(this.size, this.size), ["plant"]) ) {
           var newCreature = new Creature(world, newPosition);
           newCreature.genes = this.getMutatedGenes();
           newCreature.curEnergy = this.curEnergy/2;

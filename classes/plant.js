@@ -69,7 +69,7 @@ class Plant extends LifeForm {
 
         //console.log("Plant at ("+this.body.getPosition().x.toFixed(2)+","+this.body.getPosition().y.toFixed(2)+") trying: ("+newPosition.x.toFixed(2)+","+newPosition.y.toFixed(2)+") (distance: "+distance+")(actual: "+MathHelper.linearDistance(this.body.getPosition(), newPosition)+")");
 
-        if(!WouldCircleIntersectAnything(newPosition, Vec2(this.size, this.size))) {
+        if(!WouldIntersectAnything("circle", newPosition, Vec2(this.size, this.size))) {
           var newPlant = new Plant(world, newPosition);
           newPlant.genes = this.getMutatedGenes();
           worldObjects.unshift( newPlant );
