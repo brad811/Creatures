@@ -281,7 +281,7 @@ for(var i=0; i<numPlants; i++) {
 }
 
 for(var i=0; i<numCreatures; i++) {
-  worldObjects.push( new Creature(world) );
+  worldObjects.push( new Creature(world, Vec2(Math.random()*worldSize.x - worldSize.x/2, Math.random()*worldSize.y - worldSize.y/2)) );
 }
 
 for(var i=0; i<numPredators; i++) {

@@ -1,5 +1,5 @@
 class Creature extends LifeForm {
-  constructor(world) {
+  constructor(world, position) {
     super(world);
 
     this.type = "creature";
@@ -21,7 +21,7 @@ class Creature extends LifeForm {
 
     this.body = world.createBody({
       type: 'dynamic',
-      position: Vec2(Math.random()*40.0 - 20.0, Math.random()*20.0 - 10.0),
+      position: position,
       angle: Math.random() * Math.PI*2,
       linearDamping: 7.0,
       angularDamping: 7.0
