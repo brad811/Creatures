@@ -41,8 +41,6 @@ class Plant extends LifeForm {
     super.step();
 
     if(this.deathTime != -1 && (Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
-      // don't do this here, add it to a list of "to be removed" items,
-      // and let the world step handle it
       worldObjects.splice( worldObjects.indexOf(this), 1 );
       world.destroyBody(this.body);
       return;

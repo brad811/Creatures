@@ -67,7 +67,7 @@ class Creature extends LifeForm {
       //reproductionTime: 60.0, // seconds
       maxEnergy: 10.0,
       energyUse: 0.1, // per second
-      //lifespan: 300.0, // seconds
+      lifespan: 300.0, // seconds
       decayTime: 100.0 // seconds
     };
 
@@ -125,13 +125,12 @@ class Creature extends LifeForm {
   step() {
     if(this.deathTime != -1) {
       if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
-        // don't do this here, add it to a list of "to be removed" items,
-        // and let the world step handle it
         worldObjects.splice( worldObjects.indexOf(this), 1 );
         world.destroyBody(this.body);
         return;
       }
 
+      // don't do anything, we're dead
       return;
     }
 
@@ -141,8 +140,8 @@ class Creature extends LifeForm {
       this.lastEnergyLoss = Date.now();
     }
 
-    // ran out of energy, time to die
-    if(this.curEnergy <= 0) {
+    // ran out of energy or too old, time to die
+    if(this.curEnergy <= 0 || (Date.now() - this.birthTime)/1000 > this.genes["lifespan"]) {
       this.deathTime = Date.now();
       this.color = "rgba(180, 180, 180, 0.4)";
       return;
