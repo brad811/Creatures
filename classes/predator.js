@@ -5,15 +5,9 @@ class Predator extends Creature {
     this.type = "predator";
     this.color = "rgb(180,80,80)";
 
-    // TODO: implement eating behavior
-    this.genes = {
-      mutationRate: 1.0, // percent
-      reproductionTime: 60.0, // seconds
-      maxEnergy: 10.0,
-      energyUse: 0.0, // per second
-      lifespan: 300.0, // seconds
-      decayTime: 100.0 // seconds
-    };
+    // just overwrite a couple of genes for now
+    this.genes["energyUse"] = 0.0;
+    this.genes["lifespan"] = 99999.0;
   }
 
   step() {
