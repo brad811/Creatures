@@ -17,8 +17,9 @@ class LifeForm extends WorldObject {
 
     for(var key in this.genes) {
       var curValue = this.genes[key];
-      var newValue = Math.max(curValue - mutationRate/100/2 + Math.random()*mutationRate/100, 0.1);
-      //console.log(key + "("+curValue+") = max("+curValue+" - "+(mutationRate/2)+" + rand*"+(mutationRate)+", 0.1) = " + newValue);
+      var range = curValue * (mutationRate/100);
+      var newValue = Math.max(curValue - range/2 + Math.random()*range, 0.1);
+      //console.log(this.type + " " + key + "("+curValue+") = max("+curValue+" - "+(range/2)+" + rand*"+(range)+"(mutationRate: "+mutationRate+"), 0.1) = " + newValue);
 
       mutatedGenes[key] = newValue;
     }

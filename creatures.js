@@ -285,7 +285,7 @@ for(var i=0; i<numCreatures; i++) {
 }
 
 for(var i=0; i<numPredators; i++) {
-  worldObjects.push( new Predator(world) );
+  worldObjects.push( new Predator(world, Vec2(Math.random()*worldSize.x - worldSize.x/2, Math.random()*worldSize.y - worldSize.y/2)) );
 }
 
 var panicCountdown = 60 * 10;
