@@ -40,9 +40,14 @@ class Plant extends LifeForm {
   step() {
     super.step();
 
-    if(this.deathTime != -1 && (Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
-      worldObjects.splice( worldObjects.indexOf(this), 1 );
-      world.destroyBody(this.body);
+    if(this.deathTime != -1) {
+      if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
+        worldObjects.splice( worldObjects.indexOf(this), 1 );
+        world.destroyBody(this.body);
+        return;
+      }
+
+      // don't do anything, we're dead
       return;
     }
 

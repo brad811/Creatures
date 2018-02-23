@@ -64,11 +64,11 @@ class Creature extends LifeForm {
 
     this.genes = {
       mutationRate: 1.0, // percent
-      //reproductionTime: 60.0, // seconds
+      reproductionTime: 120.0, // seconds
       maxEnergy: 10.0,
       energyUse: 0.1, // per second
-      lifespan: 300.0, // seconds
-      decayTime: 100.0 // seconds
+      lifespan: 900.0, // seconds
+      decayTime: 120.0 // seconds
     };
 
     this.curEnergy = this.genes["maxEnergy"];
@@ -145,6 +145,33 @@ class Creature extends LifeForm {
       this.deathTime = Date.now();
       this.color = "rgba(180, 180, 180, 0.4)";
       return;
+    }
+
+    // REPRODUCTION
+
+    // asexually reproduce if it's been enough time and we're relaxed
+    if((Date.now() - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"] && this.state.type == "relaxed") {
+      this.lastReproductionTime = Date.now();
+
+      // time to reproduce!
+      for(var tries=0; tries<10; tries++) {
+        var angle = Math.random() * Math.PI*2;
+        var newPosition = Vec2(
+          this.body.getPosition().x + this.size * Math.cos(angle),
+          this.body.getPosition().y + this.size * Math.sin(angle)
+        );
+
+        //console.log("Creature at ("+this.body.getPosition().x.toFixed(2)+","+this.body.getPosition().y.toFixed(2)+") trying: ("+newPosition.x.toFixed(2)+","+newPosition.y.toFixed(2)+") (distance: "+distance+")(actual: "+MathHelper.linearDistance(this.body.getPosition(), newPosition)+")");
+
+        if(!WouldCircleIntersectAnything(newPosition, Vec2(this.size, this.size))) {
+          var newCreature = new Creature(world, newPosition);
+          newCreature.genes = this.getMutatedGenes();
+          newCreature.curEnergy = this.curEnergy/2;
+          this.curEnergy = this.curEnergy/2;
+          worldObjects.push( newCreature );
+          break;
+        }
+      }
     }
 
     // BEHAVIOR

@@ -1,3 +1,7 @@
+body {
+  font-family: "Helvetica", Helvetica, sans-serif;
+}
+
 canvas {
   border: 1px solid black;
   float: left;

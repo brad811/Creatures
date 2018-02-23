@@ -248,7 +248,7 @@ function WouldIntersectWorldObject(type, position, size, worldObject) {
 var worldSize = Vec2(70.0, 50.0);
 
 var
-  numPlants = 30,
+  numPlants = 50,
   numCreatures = 10,
   numPredators = 2;
 
