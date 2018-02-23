@@ -370,6 +370,8 @@ var lastGeneCheck = 0;
 
 // TODO: add world speed modifier so we can speed things up with a slider
 
+var desiredFPS = 60;
+
 var
   frameMax = -1,
   frameMin = 100000,
@@ -384,7 +386,9 @@ var gameLoop = function(callback) {
     frameMax = curFrameTime;
   if(curFrameTime < frameMin)
     frameMin = curFrameTime;
+
   lastFrame = Date.now();
+
   if(Date.now() - frameStart > 60*1000) {
     // do the summary
     var avgFrame = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
@@ -397,7 +401,7 @@ var gameLoop = function(callback) {
     lastFrame = Date.now();
   }
   // in each frame call world.step(timeStep) with fixed timeStep
-  world.step(1 / 60);
+  world.step(1 / desiredFPS);
 
   // print out average genes every 5 minutes
   if((Date.now() - lastGeneCheck) / 1000 > 300) {
@@ -447,7 +451,7 @@ var gameLoop = function(callback) {
     worldObjects[i].render(ctx);
   }
 
-  window.setTimeout(function() { gameLoop(gameLoop); }, 1000 / 60);
+  window.requestAnimationFrame(function() { gameLoop(gameLoop); });
 };
 
 window.requestAnimationFrame(function() { gameLoop(gameLoop); });
