@@ -54,11 +54,11 @@ class Plant extends LifeForm {
     // TODO: add some randomness to this?
     // all the plants appear and disappear in giant groups right now
     // and it looks weird
-    if(this.deathTime == -1 && (Date.now() - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"]) {
+    if((Date.now() - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"]) {
       this.lastReproductionTime = Date.now();
 
       // time to reproduce!
-      for(var tries=0; tries<10; tries++) {
+      for(var tries=0; tries<5; tries++) {
         var angle = Math.random() * Math.PI*2;
         var distance = Math.random()*this.genes["reproductionDistance"] + this.size;
 
@@ -78,13 +78,9 @@ class Plant extends LifeForm {
       }
     }
 
-    if(this.deathTime == -1 && (Date.now() - this.birthTime) / 1000 > this.genes["lifespan"]) {
+    if((Date.now() - this.birthTime) / 1000 > this.genes["lifespan"]) {
       this.deathTime = Date.now();
       this.color = "rgba(180, 120, 100, 0.2)";
-      return;
-    }
-
-    if(this.deathTime != -1) {
       return;
     }
   }

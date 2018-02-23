@@ -154,7 +154,7 @@ class Creature extends LifeForm {
       this.lastReproductionTime = Date.now();
 
       // time to reproduce!
-      for(var tries=0; tries<10; tries++) {
+      for(var tries=0; tries<5; tries++) {
         var angle = Math.random() * Math.PI*2;
         var newPosition = Vec2(
           this.body.getPosition().x + this.size * Math.cos(angle),
@@ -392,7 +392,7 @@ class CreatureStatePanic {
     if(this.steps >= 20 && Math.floor(Math.random() * 20) == 1) {
       this.steps = 0;
 
-      for(var i=0; i<10; i++) {
+      for(var i=0; i<5; i++) {
         var distance = Math.random() * 5.0 + 8.0;
         var newTarget = Vec2(
           this.creature.body.getPosition().x + distance * Math.cos(Math.random() * Math.PI*2),
@@ -427,7 +427,7 @@ class CreatureStateRunFromThreat {
     if( (this.steps >= 20 && Math.floor(Math.random() * 20) == 1) || this.steps == -1 ) {
       this.steps = 0;
 
-      for(var i=0; i<10; i++) {
+      for(var i=0; i<5; i++) {
         var distance = Math.random() * 5.0 + 8.0;
 
         var threatAngle = MathHelper.angleTo(this.creature.body.getPosition(), this.threatWorldObject.body.getPosition());
@@ -471,7 +471,7 @@ class CreatureStateHungry {
     if(this.steps >= 50 && Math.floor(Math.random() * 20) == 1) {
       this.steps = 0;
 
-      for(var i=0; i<10; i++) {
+      for(var i=0; i<5; i++) {
         var range = Math.PI / 2 + (Math.PI * (i/10) );
         var angle = this.creature.body.getAngle() - range/2 + Math.random()*range;
         var distance = Math.random() * 4.0 + 4.0;

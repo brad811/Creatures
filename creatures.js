@@ -370,7 +370,32 @@ var lastGeneCheck = 0;
 
 // TODO: add world speed modifier so we can speed things up with a slider
 
+var
+  frameMax = -1,
+  frameMin = 100000,
+  frameStart = Date.now(),
+  frameTimes = [],
+  lastFrame = Date.now();
+
 var gameLoop = function(callback) {
+  var curFrameTime = Date.now() - lastFrame;
+  frameTimes.push(curFrameTime);
+  if(curFrameTime > frameMax)
+    frameMax = curFrameTime;
+  if(curFrameTime < frameMin)
+    frameMin = curFrameTime;
+  lastFrame = Date.now();
+  if(Date.now() - frameStart > 60*1000) {
+    // do the summary
+    var avgFrame = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+    console.log("Frame average: " + avgFrame.toFixed(2) + ", min: " + frameMin + ", max: " + frameMax + ", worldObjects: " + worldObjects.length);
+
+    frameMax = -1;
+    frameMin = 100000;
+    frameStart = Date.now();
+    frameTimes = [];
+    lastFrame = Date.now();
+  }
   // in each frame call world.step(timeStep) with fixed timeStep
   world.step(1 / 60);
 
