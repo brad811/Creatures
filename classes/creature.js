@@ -509,6 +509,14 @@ class CreatureStateHeadForFood {
     this.type = "head-for-food";
     this.creature = creature;
 
+    this.findClosestFood();
+
+    // go 30% speed
+    creature.curTurnSpeed = creature.maxTurnSpeed * 0.5;
+    creature.curAcceleration = creature.maxAcceleration * 0.2;
+  }
+
+  findClosestFood() {
     var minDistance = 1000000;
     var closestFood;
     for(const smellWorldObject of this.creature.smells) {
@@ -522,13 +530,15 @@ class CreatureStateHeadForFood {
     }
 
     this.food = closestFood;
-
-    // go 30% speed
-    creature.curTurnSpeed = creature.maxTurnSpeed * 0.5;
-    creature.curAcceleration = creature.maxAcceleration * 0.2;
+    this.startTime = worldTime;
   }
 
   step() {
+    // make sure we're still trying to get to the closest piece of food
+    if(worldTime - this.startTime > 2 * 1000) {
+      this.findClosestFood();
+    }
+
     if(this.food == undefined || worldObjects.indexOf(this.food) == -1 || this.food.deathTime != -1) {
       this.creature.state = new CreatureStateHungry(this.creature);
     } else if(this.creature.target != this.food.body.getPosition()) {
