@@ -87,7 +87,7 @@ debugCheckbox.onchange = function() {
 var worldObjects = [];
 
 var world = planck.World();
-var worldTime = 1000.0;
+var worldTime = 0.0;
 
 // STAGE
 
@@ -398,11 +398,11 @@ var gameLoop = function(callback) {
   }
   // in each frame call world.step(timeStep) with fixed timeStep
   world.step(1 / desiredFPS);
-  worldTime += 1 / desiredFPS;
+  worldTime += 1 / desiredFPS * 1000;
 
   // print out average genes every 5 minutes
   if((Date.now() - lastGeneCheck) / 1000 > 300) {
-    lastGeneCheck = worldTime;
+    lastGeneCheck = Date.now();
     var avg = {};
 
     for(i in worldObjects) {
