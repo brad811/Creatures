@@ -57,10 +57,10 @@ class Creature extends LifeForm {
     this.stateFinishTime = 0;
     this.panic = function() {
       this.state = new CreatureStatePanic(this);
-      this.stateFinishTime = Date.now() + 10*1000;
+      this.stateFinishTime = worldTime + 10*1000;
     }
 
-    this.lastTargetAngleChange = Date.now();
+    this.lastTargetAngleChange = worldTime;
 
     this.genes = {
       mutationRate: 1.0, // percent
@@ -72,12 +72,12 @@ class Creature extends LifeForm {
     };
 
     this.curEnergy = this.genes["maxEnergy"];
-    this.lastEnergyLoss = Date.now();
+    this.lastEnergyLoss = worldTime;
   }
 
   determineBehaviorState() {
     // some states overpower other behaviors
-    if(this.stateFinishTime > Date.now()) {
+    if(this.stateFinishTime > worldTime) {
       // we have to stay in our current state a little longer
     } else if(this.state.type == "panic") {
       this.state = new CreatureStateRelaxed(this);
@@ -92,7 +92,7 @@ class Creature extends LifeForm {
           }
 
           // we still smell it, keep running!
-          this.stateFinishTime = Date.now() + 1*1000;
+          this.stateFinishTime = worldTime + 1*1000;
 
           // don't check more smells or become relaxed
           return;
@@ -129,8 +129,8 @@ class Creature extends LifeForm {
 
   reproduce() {
     // asexually reproduce if it's been enough time and we're relaxed
-    if((Date.now() - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"] && this.state.type == "relaxed") {
-      this.lastReproductionTime = Date.now();
+    if((worldTime - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"] && this.state.type == "relaxed") {
+      this.lastReproductionTime = worldTime;
 
       // time to reproduce!
       for(var tries=0; tries<5; tries++) {
@@ -156,7 +156,7 @@ class Creature extends LifeForm {
 
   step() {
     if(this.deathTime != -1) {
-      if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
+      if((worldTime - this.deathTime) / 1000 > this.genes["decayTime"]) {
         worldObjects.splice( worldObjects.indexOf(this), 1 );
         world.destroyBody(this.body);
         return;
@@ -167,14 +167,14 @@ class Creature extends LifeForm {
     }
 
     // a second has passed, use up some energy
-    if(Date.now() - this.lastEnergyLoss > 1000) {
+    if(worldTime - this.lastEnergyLoss > 1000) {
       this.curEnergy -= this.genes["energyUse"];
-      this.lastEnergyLoss = Date.now();
+      this.lastEnergyLoss = worldTime;
     }
 
     // ran out of energy or too old, time to die
-    if(this.curEnergy <= 0 || (Date.now() - this.birthTime)/1000 > this.genes["lifespan"]) {
-      this.deathTime = Date.now();
+    if(this.curEnergy <= 0 || (worldTime - this.birthTime)/1000 > this.genes["lifespan"]) {
+      this.deathTime = worldTime;
       this.color = "rgba(180, 180, 180, 0.4)";
       return;
     }
@@ -322,12 +322,12 @@ class Creature extends LifeForm {
   }
 
   handleCollision(ownFixture, otherFixture) {
-    // if(Date.now() - this.lastTargetAngleChange > 1000) {
+    // if(worldTime - this.lastTargetAngleChange > 1000) {
     //   this.targetAngle += Math.PI/2 + Math.random() * Math.PI;
     //   if(this.targetAngle < 0) { this.targetAngle += Math.PI*2; }
     //   if(this.targetAngle > Math.PI*2) { this.targetAngle -= Math.PI*2; }
 
-    //   this.lastTargetAngleChange = Date.now();
+    //   this.lastTargetAngleChange = worldTime;
     // }
 
     var otherWorldObject = otherFixture.getUserData().parentObject;

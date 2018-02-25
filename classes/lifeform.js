@@ -6,9 +6,9 @@ class LifeForm extends WorldObject {
       mutationRate: 0.0 // percent
     };
 
-    this.birthTime = Date.now();
+    this.birthTime = worldTime;
     this.deathTime = -1;
-    this.lastReproductionTime = Date.now();
+    this.lastReproductionTime = worldTime;
   }
 
   getMutatedGenes() {

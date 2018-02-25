@@ -41,7 +41,7 @@ class Plant extends LifeForm {
     super.step();
 
     if(this.deathTime != -1) {
-      if((Date.now() - this.deathTime) / 1000 > this.genes["decayTime"]) {
+      if((worldTime - this.deathTime) / 1000 > this.genes["decayTime"]) {
         worldObjects.splice( worldObjects.indexOf(this), 1 );
         world.destroyBody(this.body);
         return;
@@ -54,8 +54,8 @@ class Plant extends LifeForm {
     // TODO: add some randomness to this?
     // all the plants appear and disappear in giant groups right now
     // and it looks weird
-    if((Date.now() - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"]) {
-      this.lastReproductionTime = Date.now();
+    if((worldTime - this.lastReproductionTime) / 1000 > this.genes["reproductionTime"]) {
+      this.lastReproductionTime = worldTime;
 
       // time to reproduce!
       for(var tries=0; tries<5; tries++) {
@@ -78,8 +78,8 @@ class Plant extends LifeForm {
       }
     }
 
-    if((Date.now() - this.birthTime) / 1000 > this.genes["lifespan"]) {
-      this.deathTime = Date.now();
+    if((worldTime - this.birthTime) / 1000 > this.genes["lifespan"]) {
+      this.deathTime = worldTime;
       this.color = "rgba(180, 120, 100, 0.2)";
       return;
     }
