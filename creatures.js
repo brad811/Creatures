@@ -260,7 +260,7 @@ worldObjects.push( new Box(world, Vec2(-20.0, 0.0), Vec2(10.0, 10.0)) );
 
 for(var i=0; i<numPlants; i++) {
   for(var tries=0; tries<20; tries++) {
-    var position = Vec2(Math.random()*80.0 - 40.0, Math.random()*40.0 - 20.0);
+    var position = Vec2(Math.random()*worldSize.x - worldSize.x/2, Math.random()*worldSize.y - worldSize.y/2);
 
     if(!WouldIntersectAnything("circle", position, Vec2(1.0, 1.0))) {
       worldObjects.push( new Plant(world, position) );
@@ -306,29 +306,16 @@ world.on('begin-contact', function(contact, oldManifold) {
   var fixtureA = contact.getFixtureA();
   var fixtureB = contact.getFixtureB();
 
-  var bodyA = fixtureA.getBody();
-  var bodyB = fixtureB.getBody();
+  var fixtureAUserData = fixtureA.getUserData();
+  var fixtureBUserData = fixtureB.getUserData();
 
-  var objectA, objectB;
-
-  for(i in worldObjects) {
-    if(bodyA == worldObjects[i].body) {
-      objectA = worldObjects[i];
-    }
-
-    if(bodyB == worldObjects[i].body) {
-      objectB = worldObjects[i];
-    }
-
-    // both object have been found
-    if(objectA && objectB) break;
+  if(fixtureAUserData && fixtureAUserData.parentObject) {
+    fixtureAUserData.parentObject.handleCollision(fixtureA, fixtureB);
   }
 
-  if(objectA != undefined)
-    objectA.handleCollision(fixtureA, fixtureB);
-  
-  if(objectB != undefined)
-    objectB.handleCollision(fixtureB, fixtureA);
+  if(fixtureBUserData && fixtureBUserData.parentObject) {
+    fixtureBUserData.parentObject.handleCollision(fixtureB, fixtureA);
+  }
 
   // var worldManifold = contact.getWorldManifold();
 });
@@ -337,29 +324,16 @@ world.on('end-contact', function(contact, oldManifold) {
   var fixtureA = contact.getFixtureA();
   var fixtureB = contact.getFixtureB();
 
-  var bodyA = fixtureA.getBody();
-  var bodyB = fixtureB.getBody();
+  var fixtureAUserData = fixtureA.getUserData();
+  var fixtureBUserData = fixtureB.getUserData();
 
-  var objectA, objectB;
-
-  for(i in worldObjects) {
-    if(bodyA == worldObjects[i].body) {
-      objectA = worldObjects[i];
-    }
-
-    if(bodyB == worldObjects[i].body) {
-      objectB = worldObjects[i];
-    }
-
-    // both object have been found
-    if(objectA && objectB) break;
+  if(fixtureAUserData && fixtureAUserData.parentObject) {
+    fixtureAUserData.parentObject.handleCollisionEnd(fixtureA, fixtureB);
   }
 
-  if(objectA != undefined)
-    objectA.handleCollisionEnd(fixtureA, fixtureB);
-  
-  if(objectB != undefined)
-    objectB.handleCollisionEnd(fixtureB, fixtureA);
+  if(fixtureBUserData && fixtureBUserData.parentObject) {
+    fixtureBUserData.parentObject.handleCollisionEnd(fixtureB, fixtureA);
+  }
 });
 
 var lastGeneCheck = 0;
@@ -431,17 +405,6 @@ var gameLoop = function(callback) {
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // center dot
-  /*ctx.beginPath();
-  ctx.fillStyle = "rgb(200,0,0)";
-  ctx.arc(
-    0 * worldSizeRatio + xAdjustment,
-    0 * worldSizeRatio + yAdjustment,
-    0.25 * worldSizeRatio,
-    0, 2 * Math.PI, false
-  );
-  ctx.fill();*/
 
   // render
   for(i in worldObjects) {
