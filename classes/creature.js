@@ -6,6 +6,7 @@ class Creature extends LifeForm {
     this.maxSpeed = 20.0;
     this.maxTurnSpeed = 16.0;
     this.maxAcceleration = 80.0;
+    this.foodType = "plant";
 
     this.curSpeed = 0.0;
     this.curTurnSpeed = 0.0;
@@ -64,7 +65,7 @@ class Creature extends LifeForm {
 
     this.genes = {
       mutationRate: 1.0, // percent
-      reproductionTime: 120.0, // seconds
+      reproductionTime: 200.0, // seconds
       maxEnergy: 10.0,
       energyUse: 0.1, // per second
       lifespan: 900.0, // seconds
@@ -96,7 +97,7 @@ class Creature extends LifeForm {
 
           // don't check more smells or become relaxed
           return;
-        } else if(this.state.type == "hungry" && smellWorldObject.type == "plant" && smellWorldObject.deathTime == -1) {
+        } else if(this.state.type == "hungry" && smellWorldObject.type == this.foodType && smellWorldObject.deathTime == -1) {
           if(this.state.type != "head-for-food") {
             // TODO: move this to the hungry state?
             // change to state if we're not already in it
@@ -186,6 +187,7 @@ class Creature extends LifeForm {
     // BEHAVIOR
 
     this.determineBehaviorState();
+
     this.state.step();
 
     var curAngle = this.body.getAngle();
@@ -520,7 +522,7 @@ class CreatureStateHeadForFood {
     var minDistance = 1000000;
     var closestFood;
     for(const smellWorldObject of this.creature.smells) {
-      if(smellWorldObject.type == "plant" && smellWorldObject.deathTime == -1) {
+      if(smellWorldObject.type == this.creature.foodType && smellWorldObject.deathTime == -1) {
         var distance = MathHelper.linearDistance(this.creature.body.getPosition(), smellWorldObject.body.getPosition());
         if(distance < minDistance) {
           minDistance = distance;

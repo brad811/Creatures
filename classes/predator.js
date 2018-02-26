@@ -4,6 +4,7 @@ class Predator extends Creature {
 
     this.type = "predator";
     this.color = "rgb(180,80,80)";
+    this.foodType = "creature";
 
     // just overwrite a couple of genes for now
     this.genes["energyUse"] = 0.0;
