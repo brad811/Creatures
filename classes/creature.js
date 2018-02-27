@@ -451,7 +451,7 @@ class CreatureStateRunFromThreat {
         var threatAngle = MathHelper.angleTo(this.creature.body.getPosition(), this.threatWorldObject.body.getPosition());
         // vary by 1/4 of a circle facing away from threat
         // try wider and wider angles as time increases, so we don't just get stuck against a wall
-        var range = Math.PI / 2 + (Math.PI * (i/10) );
+        var range = (Math.PI*1.5) / 2 + ((Math.PI*1.5) * (i/10) );
         var newTargetAngle = (threatAngle + Math.PI) - range/2 + (Math.random() * range);
 
         var newTarget = Vec2(
@@ -490,7 +490,7 @@ class CreatureStateHungry {
       this.steps = 0;
 
       for(var i=0; i<5; i++) {
-        var range = Math.PI / 2 + (Math.PI * (i/10) );
+        var range = (Math.PI*1.5) / 2 + ((Math.PI*1.5) * (i/10) );
         var angle = this.creature.body.getAngle() - range/2 + Math.random()*range;
         var distance = Math.random() * 4.0 + 4.0;
         var newTarget = Vec2(
