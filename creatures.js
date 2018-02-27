@@ -347,7 +347,11 @@ var
   frameMin = 100000,
   frameStart = Date.now(),
   frameTimes = [],
-  lastFrame = Date.now();
+  frameWorldStepTimes = [],
+  frameObjectStepTimes = [],
+  frameObjectRenderTimes = [],
+  lastFrame = Date.now(),
+  startTime = 0;
 
 var gameLoop = function(callback) {
   var curFrameTime = Date.now() - lastFrame;
@@ -362,7 +366,10 @@ var gameLoop = function(callback) {
   if(Date.now() - frameStart > 60*1000) {
     // do the summary
     var avgFrame = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-    console.log("Frame average: " + avgFrame.toFixed(2) + ", min: " + frameMin + ", max: " + frameMax + ", worldObjects: " + worldObjects.length);
+    var avgWorld = frameWorldStepTimes.reduce((a, b) => a + b, 0) / frameWorldStepTimes.length;
+    var avgObject = frameObjectStepTimes.reduce((a, b) => a + b, 0) / frameObjectStepTimes.length;
+    var avgRender = frameObjectRenderTimes.reduce((a, b) => a + b, 0) / frameObjectRenderTimes.length;
+    console.log("Frame average: " + avgFrame.toFixed(2) + "ms, min: " + frameMin + "ms, max: " + frameMax + "ms, # worldObjects: " + worldObjects.length + ", worldStep: "+avgWorld.toFixed(2)+"ms, objectsStep: "+avgObject.toFixed(2)+"ms, objectRender: "+avgRender.toFixed(2)+"ms");
 
     frameMax = -1;
     frameMin = 100000;
@@ -371,7 +378,9 @@ var gameLoop = function(callback) {
     lastFrame = Date.now();
   }
   // in each frame call world.step(timeStep) with fixed timeStep
+  startTime = Date.now();
   world.step(1 / desiredFPS);
+  frameWorldStepTimes.push(Date.now() - startTime);
   worldTime += 1 / desiredFPS * 1000;
 
   // print out average genes every 5 minutes
@@ -400,16 +409,20 @@ var gameLoop = function(callback) {
   }
 
   // physics
+  startTime = Date.now();
   for(i in worldObjects) {
     worldObjects[i].step();
   }
+  frameObjectStepTimes.push(Date.now() - startTime);
 
+  startTime = Date.now();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // render
   for(i in worldObjects) {
     worldObjects[i].render(ctx);
   }
+  frameObjectRenderTimes.push(Date.now() - startTime);
 
   window.requestAnimationFrame(function() { gameLoop(gameLoop); });
 };
