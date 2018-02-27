@@ -4,15 +4,18 @@ class Predator extends Creature {
 
     this.type = "predator";
     this.color = "rgb(180,80,80)";
-    this.foodType = "creature";
+    this.foodTypes = ["creature"];
+    this.threatTypes = [];
 
-    // just overwrite a couple of genes for now
-    this.genes["energyUse"] = 0.0;
-    this.genes["lifespan"] = 99999.0;
+    // seek food less often
+    this.hungerThreshhold = 0.6;
+    this.genes["energyUse"] = 0.08;
+    this.genes["reproductionTime"] = 300;
+    this.genes["lifespan"] = 900;
   }
 
-  reproduce() {
-    // disable reproduction for now
+  getNewInstance(world, position) {
+    return new Predator(world, position);
   }
 
   step() {
@@ -21,14 +24,6 @@ class Predator extends Creature {
 
   render(ctx) {
     super.render(ctx);
-  }
-
-  handleCollision(ownFixture, otherFixture) {
-    // TODO
-  }
-
-  handleCollisionEnd(ownFixture, otherFixture) {
-    // TODO
   }
 }
 

@@ -6,7 +6,10 @@ class Creature extends LifeForm {
     this.maxSpeed = 20.0;
     this.maxTurnSpeed = 16.0;
     this.maxAcceleration = 80.0;
-    this.foodType = "plant";
+    this.foodTypes = ["plant"];
+    this.threatTypes = ["predator"];
+    this.hungerThreshhold = 0.9;
+    this.energyContentAsFood = 6.0;
 
     this.curSpeed = 0.0;
     this.curTurnSpeed = 0.0;
@@ -65,10 +68,10 @@ class Creature extends LifeForm {
 
     this.genes = {
       mutationRate: 1.0, // percent
-      reproductionTime: 200.0, // seconds
+      reproductionTime: 150.0, // seconds
       maxEnergy: 10.0,
       energyUse: 0.1, // per second
-      lifespan: 900.0, // seconds
+      lifespan: 800.0, // seconds
       decayTime: 120.0 // seconds
     };
 
@@ -84,9 +87,9 @@ class Creature extends LifeForm {
       this.state = new CreatureStateRelaxed(this);
     } else {
       for(const smellWorldObject of this.smells) {
-        // see if we smell a predator
-        if(smellWorldObject.type == "predator") {
-          // make sure we're running from the predator
+        // see if we smell a threat
+        if(this.threatTypes.indexOf(smellWorldObject.type) > -1) {
+          // make sure we're running from the threat
           if(this.state.type != "run-from-threat") {
             //change to state if we're not already in it
             this.state = new CreatureStateRunFromThreat(this, smellWorldObject);
@@ -97,7 +100,7 @@ class Creature extends LifeForm {
 
           // don't check more smells or become relaxed
           return;
-        } else if(this.state.type == "hungry" && smellWorldObject.type == this.foodType && smellWorldObject.deathTime == -1) {
+        } else if(this.state.type == "hungry" && this.foodTypes.indexOf(smellWorldObject.type) > -1 && smellWorldObject.deathTime == -1) {
           if(this.state.type != "head-for-food") {
             // TODO: move this to the hungry state?
             // change to state if we're not already in it
@@ -113,7 +116,7 @@ class Creature extends LifeForm {
       }
 
       // see if we are hungry
-      if(this.curEnergy <= this.genes["maxEnergy"] * 0.9) {
+      if(this.curEnergy <= this.genes["maxEnergy"] * this.hungerThreshhold) {
         if(this.state.type != "hungry" && this.state.type != "head-for-food") {
           this.state = new CreatureStateHungry(this);
         }
@@ -144,7 +147,7 @@ class Creature extends LifeForm {
         //console.log("Creature at ("+this.body.getPosition().x.toFixed(2)+","+this.body.getPosition().y.toFixed(2)+") trying: ("+newPosition.x.toFixed(2)+","+newPosition.y.toFixed(2)+") (distance: "+distance+")(actual: "+MathHelper.linearDistance(this.body.getPosition(), newPosition)+")");
 
         if( !WouldIntersectAnything("circle", newPosition, Vec2(this.size, this.size), ["plant"]) ) {
-          var newCreature = new Creature(world, newPosition);
+          var newCreature = this.getNewInstance(world, newPosition);
           newCreature.genes = this.getMutatedGenes();
           newCreature.curEnergy = this.curEnergy/2;
           this.curEnergy = this.curEnergy/2;
@@ -153,6 +156,10 @@ class Creature extends LifeForm {
         }
       }
     }
+  }
+
+  getNewInstance(world, newPosition) {
+    return new Creature(world, newPosition);
   }
 
   step() {
@@ -522,7 +529,7 @@ class CreatureStateHeadForFood {
     var minDistance = 1000000;
     var closestFood;
     for(const smellWorldObject of this.creature.smells) {
-      if(smellWorldObject.type == this.creature.foodType && smellWorldObject.deathTime == -1) {
+      if(this.creature.foodTypes.indexOf(smellWorldObject.type) > -1 && smellWorldObject.deathTime == -1) {
         var distance = MathHelper.linearDistance(this.creature.body.getPosition(), smellWorldObject.body.getPosition());
         if(distance < minDistance) {
           minDistance = distance;
@@ -548,7 +555,7 @@ class CreatureStateHeadForFood {
     } else if( WouldIntersectWorldObject(this.creature.shape, this.creature.body.getPosition(), Vec2(this.creature.sizeX,this.creature.sizeY), this.food) ) {
       worldObjects.splice( worldObjects.indexOf(this.food), 1 );
       world.destroyBody(this.food.body);
-      this.creature.curEnergy += 2.0;
+      this.creature.curEnergy += this.food.energyContentAsFood;
     }
   }
 }

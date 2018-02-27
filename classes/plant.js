@@ -9,6 +9,8 @@ class Plant extends LifeForm {
     this.sizeX = this.size;
     this.sizeY = this.size;
 
+    this.energyContentAsFood = 2.0;
+
     this.body = world.createBody({
       type: 'static',
       position: position
