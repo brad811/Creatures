@@ -9,7 +9,7 @@ class Predator extends Creature {
 
     // seek food less often
     this.hungerThreshhold = 0.6;
-    this.genes["energyUse"] = 0.08;
+    this.genes["energyUse"] = 0.07;
     this.genes["reproductionTime"] = 300;
     this.genes["lifespan"] = 900;
   }
