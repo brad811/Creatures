@@ -3,7 +3,7 @@ class Herbivore extends Creature {
     super(world, position);
 
     this.type = "herbivore";
-    this.color = "rgb(130,130,180)";
+    this.color = "rgb(110,110,160)";
     this.foodTypes = ["plant"];
     this.threatTypes = ["predator"];
   }

@@ -416,7 +416,13 @@ var gameLoop = function(callback) {
   frameObjectStepTimes.push(Date.now() - startTime);
 
   startTime = Date.now();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "rgb(150,150,150)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.stroke();
+
+  Renderer.renderBox(ctx, new Vec2(0,10), new Vec2(worldSize.x, worldSize.y), "rgb(255,255,255)");
 
   // render
   for(i in worldObjects) {
