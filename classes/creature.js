@@ -6,8 +6,8 @@ class Creature extends LifeForm {
     this.maxSpeed = 20.0;
     this.maxTurnSpeed = 16.0;
     this.maxAcceleration = 80.0;
-    this.foodTypes = ["plant"];
-    this.threatTypes = ["predator"];
+    this.foodTypes = [];
+    this.threatTypes = [];
     this.hungerThreshhold = 0.9;
     this.energyContentAsFood = 6.0;
 

@@ -277,7 +277,7 @@ for(var i=0; i<numPlants; i++) {
 }
 
 for(var i=0; i<numCreatures; i++) {
-  worldObjects.push( new Creature(world, Vec2(Math.random()*worldSize.x - worldSize.x/2, Math.random()*worldSize.y - worldSize.y/2)) );
+  worldObjects.push( new Herbivore(world, Vec2(Math.random()*worldSize.x - worldSize.x/2, Math.random()*worldSize.y - worldSize.y/2)) );
 }
 
 for(var i=0; i<numPredators; i++) {
@@ -369,7 +369,7 @@ var gameLoop = function(callback) {
     var avgWorld = frameWorldStepTimes.reduce((a, b) => a + b, 0) / frameWorldStepTimes.length;
     var avgObject = frameObjectStepTimes.reduce((a, b) => a + b, 0) / frameObjectStepTimes.length;
     var avgRender = frameObjectRenderTimes.reduce((a, b) => a + b, 0) / frameObjectRenderTimes.length;
-    console.log("Frame average: " + avgFrame.toFixed(2) + "ms, min: " + frameMin + "ms, max: " + frameMax + "ms, # worldObjects: " + worldObjects.length + ", worldStep: "+avgWorld.toFixed(2)+"ms, objectsStep: "+avgObject.toFixed(2)+"ms, objectRender: "+avgRender.toFixed(2)+"ms");
+    console.log("Frame average: " + avgFrame.toFixed(2) + "ms ("+(1000/avgFrame).toFixed(2)+"fps), min: " + frameMin + "ms, max: " + frameMax + "ms, # worldObjects: " + worldObjects.length + ", worldStep: "+avgWorld.toFixed(2)+"ms, objectsStep: "+avgObject.toFixed(2)+"ms, objectRender: "+avgRender.toFixed(2)+"ms");
 
     frameMax = -1;
     frameMin = 100000;
