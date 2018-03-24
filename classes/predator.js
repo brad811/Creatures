@@ -4,7 +4,7 @@ class Predator extends Creature {
 
     this.type = "predator";
     this.color = "rgb(180,80,80)";
-    this.foodTypes = ["creature"];
+    this.foodTypes = ["herbivore"];
     this.threatTypes = [];
 
     // seek food less often
